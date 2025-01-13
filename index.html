@@ -30,29 +30,38 @@
 </head>
 <body>
     <h1>File List</h1>
-    <p>Below is the list of files and resources in this directory:</p>
+    <p>Below is the list of files in this directory:</p>
     <ul id="file-list"></ul>
 
     <script>
-        async function fetchFileList() {
-            const response = await fetch(location.href);
-            const text = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
-            const links = doc.querySelectorAll('a');
+        // GitHub 用户名和仓库名
+        const username = "ueYao"; // 替换为你的 GitHub 用户名
+        const repo = "image-hosting"; // 替换为你的仓库名
+        const branch = "main"; // 默认分支名称
 
-            const fileList = document.getElementById('file-list');
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && !href.startsWith('?') && !href.startsWith('/')) {
-                    const listItem = document.createElement('li');
-                    const anchor = document.createElement('a');
-                    anchor.href = href;
-                    anchor.textContent = decodeURIComponent(href);
+        async function fetchFileList() {
+            const url = `https://api.github.com/repos/${username}/${repo}/contents/`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch file list");
+                }
+                const files = await response.json();
+                const fileList = document.getElementById("file-list");
+
+                files.forEach(file => {
+                    const listItem = document.createElement("li");
+                    const anchor = document.createElement("a");
+                    anchor.href = file.download_url; // 文件的下载链接
+                    anchor.textContent = file.name; // 文件名
                     listItem.appendChild(anchor);
                     fileList.appendChild(listItem);
-                }
-            });
+                });
+            } catch (error) {
+                console.error(error);
+                const fileList = document.getElementById("file-list");
+                fileList.textContent = "Failed to load file list.";
+            }
         }
 
         fetchFileList();
